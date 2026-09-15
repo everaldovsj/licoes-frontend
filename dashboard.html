@@ -59,28 +59,28 @@
         .login-error { color: var(--vermelho); text-align: center; margin-top: 8px; display: none; font-size: 13px; }
 
         .dashboard-container { max-width: 1600px; margin: 0 auto; display: none; }
-        
-        header { 
-            display: flex; justify-content: space-between; align-items: center; 
-            background: var(--bg-card); padding: 16px 24px; border-radius: 16px; 
-            border: 1px solid var(--border-color); margin-bottom: 20px; 
-            box-shadow: var(--shadow); flex-wrap: wrap; gap: 12px; 
+
+        header {
+            display: flex; justify-content: space-between; align-items: center;
+            background: var(--bg-card); padding: 16px 24px; border-radius: 16px;
+            border: 1px solid var(--border-color); margin-bottom: 20px;
+            box-shadow: var(--shadow); flex-wrap: wrap; gap: 12px;
         }
         .header-left { display: flex; align-items: center; gap: 20px; flex: 1; }
         .header-logo { height: 55px; display: flex; align-items: center; }
         .header-logo img { height: 100%; width: auto; max-width: 220px; object-fit: contain; }
-        .header-logo .fallback-logo { 
-            font-size: 26px; font-weight: 800; color: var(--verde-sicaf); 
+        .header-logo .fallback-logo {
+            font-size: 26px; font-weight: 800; color: var(--verde-sicaf);
             letter-spacing: 2px; padding: 4px 16px;
             border: 2px solid var(--verde-sicaf); border-radius: 8px;
         }
         .header-title h1 { color: var(--verde-sicaf); font-size: 18px; font-weight: 800; }
         .header-title p { color: var(--text-secondary); font-size: 11px; margin-top: 2px; }
         .header-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-        
-        #clientLogoContainer { 
-            margin-left: 10px; padding-left: 20px; 
-            border-left: 2px solid var(--border-color); 
+
+        #clientLogoContainer {
+            margin-left: 10px; padding-left: 20px;
+            border-left: 2px solid var(--border-color);
             cursor: pointer; transition: opacity 0.2s;
         }
         #clientLogoContainer:hover { opacity: 0.8; }
@@ -247,6 +247,15 @@
             <label>Perfil</label>
             <select id="newUserRole"><option value="user">Usuário Padrão</option><option value="admin">Administrador</option></select>
         </div>
+        <div class="form-group">
+            <label>Empresa Vinculada</label>
+            <select id="newUserCompany">
+                <option value="">— Nenhuma (acesso geral) —</option>
+            </select>
+            <p style="font-size:11px;color:var(--text-secondary);margin-top:6px;">
+                💡 A empresa vinculada define a <strong>logo exibida no cabeçalho</strong> quando o usuário logar.
+            </p>
+        </div>
         <div class="btn-row">
             <button class="btn btn-cancel" onclick="fecharModalUsuario()">Cancelar</button>
             <button class="btn" onclick="criarUsuario()">Cadastrar</button>
@@ -265,6 +274,61 @@
         </div>
         <div class="btn-row">
             <button class="btn btn-cancel" onclick="fecharModalListaUsuarios()">Fechar</button>
+        </div>
+    </div>
+</div>
+
+<!-- NOVO MODAL: RESETAR POR COMPETÊNCIA/ANO -->
+<div class="modal-overlay" id="resetModal">
+    <div class="modal">
+        <h2>🔄 Resetar Sistema</h2>
+        <p style="font-size:13px;color:var(--text-secondary);margin-bottom:20px;">
+            Escolha o tipo de reset. <strong>Usuários e KPIs nunca são afetados.</strong>
+        </p>
+
+        <div class="form-group">
+            <label>Tipo de Reset</label>
+            <select id="resetTipo" onchange="toggleResetTipo()">
+                <option value="periodo">📅 Por Competência/Ano (recomendado)</option>
+                <option value="documentos">📄 Apagar TODOS os documentos</option>
+                <option value="total">⚠️ Reset TOTAL (documentos + empresas)</option>
+            </select>
+        </div>
+
+        <div id="resetPeriodoFields">
+            <div class="form-group">
+                <label>Ano</label>
+                <select id="resetYear"></select>
+            </div>
+            <div class="form-group">
+                <label>Competência (Mês)</label>
+                <select id="resetMonth">
+                    <option value="">Todos os meses do ano</option>
+                    <option value="1">Janeiro</option>
+                    <option value="2">Fevereiro</option>
+                    <option value="3">Março</option>
+                    <option value="4">Abril</option>
+                    <option value="5">Maio</option>
+                    <option value="6">Junho</option>
+                    <option value="7">Julho</option>
+                    <option value="8">Agosto</option>
+                    <option value="9">Setembro</option>
+                    <option value="10">Outubro</option>
+                    <option value="11">Novembro</option>
+                    <option value="12">Dezembro</option>
+                </select>
+            </div>
+            <button class="btn-icon" style="width:100%;margin-bottom:16px;justify-content:center;" onclick="preVisualizarReset()">
+                <i class="fa-solid fa-magnifying-glass"></i> Pré-visualizar o que será apagado
+            </button>
+            <div id="resetPreviewBox" style="display:none;padding:14px;background:var(--bg-body);border-radius:10px;border:1px solid var(--border-color);margin-bottom:16px;"></div>
+        </div>
+
+        <div class="btn-row">
+            <button class="btn btn-cancel" onclick="fecharModalReset()">Cancelar</button>
+            <button class="btn" style="background:var(--vermelho);" onclick="executarReset()">
+                <i class="fa-solid fa-trash"></i> Confirmar Exclusão
+            </button>
         </div>
     </div>
 </div>
@@ -310,7 +374,7 @@
             <button class="btn-icon admin-only" onclick="abrirModalListaUsuarios()"><i class="fa-solid fa-users"></i> Usuários</button>
             <button class="btn-icon admin-only" onclick="abrirModalUsuario()"><i class="fa-solid fa-user-plus"></i> Novo Usuário</button>
             <button class="btn-icon admin-only" onclick="abrirModalImport()"><i class="fa-solid fa-file-import"></i> Importar</button>
-            <button class="btn-icon admin-only btn-danger" onclick="confirmarReset()"><i class="fa-solid fa-broom"></i> Reset Sistema</button>
+            <button class="btn-icon admin-only btn-danger" onclick="abrirModalReset()"><i class="fa-solid fa-broom"></i> Reset Sistema</button>
             <button class="btn-icon" onclick="gerarPDF()"><i class="fa-solid fa-file-pdf"></i> PDF</button>
             <button class="btn-icon" onclick="toggleTheme()"><i class="fa-solid fa-moon"></i></button>
             <button class="btn-icon btn-danger" onclick="handleLogout()"><i class="fa-solid fa-right-from-bracket"></i> Sair</button>
@@ -471,13 +535,15 @@ function mostrarDashboard() {
     document.getElementById('dashboardMain').style.display = 'block';
 
     const pill = document.getElementById('userPill');
+    const empresa = currentUser.company_name ? ` • ${currentUser.company_name}` : '';
+
     if (currentUser.role === 'admin') {
         document.body.classList.add('admin-mode');
         pill.classList.add('admin');
-        document.getElementById('userNameRole').textContent = `👑 Admin (${currentUser.username})`;
+        document.getElementById('userNameRole').textContent = `👑 Admin (${currentUser.username})${empresa}`;
     } else {
         document.body.classList.remove('admin-mode');
-        document.getElementById('userNameRole').textContent = `👤 Usuário (${currentUser.username})`;
+        document.getElementById('userNameRole').textContent = `👤 Usuário (${currentUser.username})${empresa}`;
     }
 
     atualizarLogoCliente();
@@ -590,7 +656,7 @@ function limparFiltros() {
     aplicarFiltros();
 }
 
-// ============ LOGO DO CLIENTE (INDEPENDENTE) ============
+// ============ LOGO DO CLIENTE ============
 function escolherLogoCliente() {
     if (currentUser?.role !== 'admin') {
         alert('Apenas administradores podem alterar a logo do cliente.');
@@ -623,15 +689,23 @@ function atualizarLogoCliente() {
     const container = document.getElementById('clientLogoContainer');
     const img = document.getElementById('clientLogoImg');
     const addBtn = document.getElementById('addClientLogoBtn');
-    const logoUrl = localStorage.getItem('sicaf_client_logo');
+
+    // Prioridade 1: logo da empresa vinculada ao usuário logado
+    // Prioridade 2: logo manual (somente admin, quando não tem empresa)
+    let logoUrl = currentUser?.company_logo || null;
+    const isFromCompany = !!currentUser?.company_logo;
+
+    if (!logoUrl && currentUser?.role === 'admin') {
+        logoUrl = localStorage.getItem('sicaf_client_logo');
+    }
 
     if (logoUrl) {
         img.src = logoUrl;
         img.onerror = () => {
-            console.warn('Logo do cliente inválida, removendo...');
-            localStorage.removeItem('sicaf_client_logo');
+            console.warn('Logo inválida, removendo...');
+            if (!isFromCompany) localStorage.removeItem('sicaf_client_logo');
             container.style.display = 'none';
-            if (currentUser?.role === 'admin') addBtn.style.display = 'inline-flex';
+            if (currentUser?.role === 'admin' && !isFromCompany) addBtn.style.display = 'inline-flex';
         };
         container.style.display = 'block';
         addBtn.style.display = 'none';
@@ -719,13 +793,13 @@ function atualizarGraficos(dados) {
 
     charts.status = new Chart(document.getElementById('statusChart'), {
         type: 'doughnut',
-        data: { 
-            labels: ['Aprovados', 'Recusados', 'Pendentes'], 
-            datasets: [{ data: [aprovados, recusados, pendentes], backgroundColor: ['#035350', '#E11D48', '#BD833B'] }] 
+        data: {
+            labels: ['Aprovados', 'Recusados', 'Pendentes'],
+            datasets: [{ data: [aprovados, recusados, pendentes], backgroundColor: ['#035350', '#E11D48', '#BD833B'] }]
         },
-        options: { 
+        options: {
             responsive: true, maintainAspectRatio: false, animation: false,
-            plugins: { 
+            plugins: {
                 legend: { position: 'bottom', labels: { color: '#94A3B8', font: { size: 12 } } },
                 datalabels: {
                     color: '#fff', font: { weight: 'bold', size: 14 },
@@ -754,23 +828,23 @@ function atualizarGraficos(dados) {
 
     charts.assert = new Chart(document.getElementById('assertivenessChart'), {
         type: 'bar',
-        data: { 
-            labels: sorted.map(s => s.name.substring(0, 18)), 
-            datasets: [{ 
-                label: 'Assertividade (%)', 
-                data: sorted.map(s => Math.round(s.pct * 100) / 100), 
+        data: {
+            labels: sorted.map(s => s.name.substring(0, 18)),
+            datasets: [{
+                label: 'Assertividade (%)',
+                data: sorted.map(s => Math.round(s.pct * 100) / 100),
                 backgroundColor: '#035350',
                 borderRadius: 4
-            }] 
+            }]
         },
-        options: { 
+        options: {
             responsive: true, maintainAspectRatio: false, animation: false,
             layout: { padding: { top: 25 } },
-            scales: { 
+            scales: {
                 y: { beginAtZero: true, max: 110, ticks: { color: '#94A3B8' } },
                 x: { ticks: { color: '#94A3B8', font: { size: 9 }, maxRotation: 45, minRotation: 45 } }
             },
-            plugins: { 
+            plugins: {
                 legend: { display: false },
                 datalabels: {
                     color: '#fff', backgroundColor: '#035350', borderRadius: 4, padding: 4,
@@ -803,24 +877,24 @@ function atualizarGraficos(dados) {
         type: 'radar',
         data: {
             labels: slaLabels.length ? slaLabels.map(t => 'Doc ' + t) : ['Sem dados'],
-            datasets: [{ 
-                label: 'SLA (%)', 
-                data: slaValues.length ? slaValues : [0], 
-                borderColor: '#035350', 
+            datasets: [{
+                label: 'SLA (%)',
+                data: slaValues.length ? slaValues : [0],
+                borderColor: '#035350',
                 backgroundColor: 'rgba(3, 83, 80, 0.2)',
                 pointBackgroundColor: '#035350',
                 pointRadius: 4
             }]
         },
-        options: { 
+        options: {
             responsive: true, maintainAspectRatio: false, animation: false,
-            scales: { 
-                r: { 
-                    beginAtZero: true, max: 100, 
+            scales: {
+                r: {
+                    beginAtZero: true, max: 100,
                     ticks: { color: '#94A3B8', backdropColor: 'transparent', stepSize: 20 },
                     pointLabels: { color: '#94A3B8', font: { size: 11 } },
                     grid: { color: '#2a3a4a' }
-                } 
+                }
             },
             plugins: {
                 legend: { labels: { color: '#94A3B8' } },
@@ -879,9 +953,9 @@ function atualizarGraficos(dados) {
         type: 'bar',
         data: {
             labels: tempoLabels.length ? tempoLabels : ['Sem dados'],
-            datasets: [{ 
-                label: 'Qtd. Documentos', 
-                data: tempoValues.length ? tempoValues : [0], 
+            datasets: [{
+                label: 'Qtd. Documentos',
+                data: tempoValues.length ? tempoValues : [0],
                 backgroundColor: '#BD833B',
                 borderRadius: 4
             }]
@@ -1032,8 +1106,9 @@ async function carregarUsuarios() {
             const isCurrentUser = u.id === currentUser.id;
             const dataCriacao = u.created_at ? new Date(u.created_at).toLocaleDateString('pt-BR') : '-';
             const ultimoLogin = u.last_login ? new Date(u.last_login).toLocaleString('pt-BR') : 'Nunca acessou';
-            
-            const roleBadge = u.role === 'admin' 
+            const empresaInfo = u.company_name ? `🏢 ${u.company_name}` : '🏢 Sem empresa vinculada';
+
+            const roleBadge = u.role === 'admin'
                 ? '<span style="background: var(--verde-sicaf); color: #fff; padding: 3px 10px; border-radius: 12px; font-size: 10px; font-weight: 700; margin-left: 8px;">👑 ADMIN</span>'
                 : '<span style="background: var(--bg-body); color: var(--text-secondary); padding: 3px 10px; border-radius: 12px; font-size: 10px; font-weight: 700; border: 1px solid var(--border-color); margin-left: 8px;">👤 USUÁRIO</span>';
 
@@ -1044,11 +1119,12 @@ async function carregarUsuarios() {
                     </div>
                     <div class="company-info">
                         <div class="company-name">
-                            ${u.username} 
+                            ${u.username}
                             ${isCurrentUser ? '<span style="color: var(--verde-sicaf); font-size: 10px; margin-left: 6px;">(você)</span>' : ''}
                             ${roleBadge}
                         </div>
                         <div class="company-cnpj">📧 ${u.email}</div>
+                        <div class="company-cnpj" style="margin-top: 4px;">${empresaInfo}</div>
                         <div class="company-cnpj" style="margin-top: 4px;">
                             📅 Criado: ${dataCriacao} &nbsp;•&nbsp; 🕐 Último login: ${ultimoLogin}
                         </div>
@@ -1173,8 +1249,8 @@ async function carregarLogos() {
         lista.innerHTML = allCompanies.map(c => `
             <div class="company-logo-item">
                 <div class="logo-preview">
-                    ${c.logo_url 
-                        ? `<img src="${c.logo_url}" alt="${c.name}" onerror="this.style.display='none'; this.parentElement.innerHTML='<i class=\\'fa-solid fa-image no-logo\\'></i>';">` 
+                    ${c.logo_url
+                        ? `<img src="${c.logo_url}" alt="${c.name}" onerror="this.style.display='none'; this.parentElement.innerHTML='<i class=\\'fa-solid fa-image no-logo\\'></i>';">`
                         : `<i class="fa-solid fa-image no-logo"></i>`}
                 </div>
                 <div class="company-info">
@@ -1249,13 +1325,34 @@ async function removerLogoEmpresa(id) {
 }
 
 // ============ CADASTRO USUÁRIO ============
-function abrirModalUsuario() { document.getElementById('userModal').classList.add('show'); }
+async function abrirModalUsuario() {
+    document.getElementById('userModal').classList.add('show');
+    await carregarEmpresasParaSelect();
+}
+
+async function carregarEmpresasParaSelect() {
+    const select = document.getElementById('newUserCompany');
+    if (!select) return;
+    select.innerHTML = '<option value="">Carregando...</option>';
+    try {
+        const res = await fetch(`${API_URL}/companies`, {
+            headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        const companies = await res.json();
+        select.innerHTML = '<option value="">— Nenhuma (acesso geral) —</option>' +
+            companies.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+    } catch (e) {
+        select.innerHTML = '<option value="">Erro ao carregar empresas</option>';
+    }
+}
+
 function fecharModalUsuario() {
     document.getElementById('userModal').classList.remove('show');
     document.getElementById('newUserUsername').value = '';
     document.getElementById('newUserEmail').value = '';
     document.getElementById('newUserPassword').value = '';
     document.getElementById('newUserRole').value = 'user';
+    document.getElementById('newUserCompany').value = '';
 }
 
 async function criarUsuario() {
@@ -1263,6 +1360,7 @@ async function criarUsuario() {
     const email = document.getElementById('newUserEmail').value.trim();
     const password = document.getElementById('newUserPassword').value.trim();
     const role = document.getElementById('newUserRole').value;
+    const company_id = document.getElementById('newUserCompany').value || null;
 
     if (!username || !email || !password) { alert('Preencha todos os campos'); return; }
 
@@ -1270,7 +1368,7 @@ async function criarUsuario() {
         const res = await fetch(`${API_URL}/users`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
-            body: JSON.stringify({ username, email, password, role })
+            body: JSON.stringify({ username, email, password, role, company_id })
         });
         const data = await res.json();
         if (data.success) {
@@ -1284,26 +1382,107 @@ async function criarUsuario() {
     }
 }
 
-// ============ RESET ============
-async function confirmarReset() {
-    const opcao = prompt(
-        '⚠️ RESET DO SISTEMA\n\n' +
-        'Escolha uma opção:\n\n' +
-        '1 - Apagar apenas DOCUMENTOS (mantém empresas)\n' +
-        '2 - Reset TOTAL (apaga documentos E empresas)\n\n' +
-        'Usuários e KPIs NUNCA são afetados.\n\n' +
-        'Digite 1 ou 2:'
-    );
+// ============ RESET (NOVO — com competência/ano) ============
+async function abrirModalReset() {
+    document.getElementById('resetModal').classList.add('show');
+    document.getElementById('resetPreviewBox').style.display = 'none';
+    document.getElementById('resetTipo').value = 'periodo';
+    toggleResetTipo();
+    popularAnosReset();
+}
 
-    if (opcao !== '1' && opcao !== '2') return;
-    const tipo = opcao === '1' ? 'documentos' : 'total';
-    const textoConfirma = tipo === 'documentos'
-        ? 'Tem CERTEZA que deseja apagar TODOS OS DOCUMENTOS?\n\nEsta ação NÃO pode ser desfeita!'
-        : 'Tem CERTEZA que deseja RESETAR TUDO?\n\nDocumentos E empresas serão apagados!\n\nEsta ação NÃO pode ser desfeita!';
+function fecharModalReset() {
+    document.getElementById('resetModal').classList.remove('show');
+}
 
-    if (!confirm(textoConfirma)) return;
-    const digitou = prompt('Digite RESETAR (em maiúsculas) para confirmar:');
-    if (digitou !== 'RESETAR') { alert('❌ Reset cancelado.'); return; }
+function toggleResetTipo() {
+    const tipo = document.getElementById('resetTipo').value;
+    const div = document.getElementById('resetPeriodoFields');
+    div.style.display = (tipo === 'periodo') ? 'block' : 'none';
+    document.getElementById('resetPreviewBox').style.display = 'none';
+}
+
+function popularAnosReset() {
+    const select = document.getElementById('resetYear');
+    const anos = [...new Set(allDocs.map(d => d.year).filter(Boolean))].sort().reverse();
+    if (anos.length === 0) {
+        const anoAtual = new Date().getFullYear();
+        select.innerHTML = `<option value="${anoAtual}">${anoAtual}</option>`;
+    } else {
+        select.innerHTML = anos.map(a => `<option value="${a}">${a}</option>`).join('');
+    }
+}
+
+async function preVisualizarReset() {
+    const year = document.getElementById('resetYear').value;
+    const month = document.getElementById('resetMonth').value;
+    const box = document.getElementById('resetPreviewBox');
+    box.style.display = 'block';
+    box.innerHTML = '⏳ Consultando...';
+
+    try {
+        const res = await fetch(`${API_URL}/admin/reset/preview`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
+            body: JSON.stringify({ year, month: month || null })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            box.innerHTML = `
+                <div style="font-size:13px;">
+                    <strong style="color:var(--verde-sicaf);display:block;margin-bottom:6px;">
+                        📊 Período: ${data.periodo}
+                    </strong>
+                    <div style="font-size:24px;font-weight:800;color:var(--text-primary);margin:8px 0;">
+                        ${data.total} documentos
+                    </div>
+                    <span style="font-size:11px;color:var(--text-secondary);">
+                        ${data.total === 0 ? '✅ Nada será apagado.' : '⚠️ Serão excluídos permanentemente.'}
+                    </span>
+                </div>
+            `;
+        } else {
+            box.innerHTML = `❌ ${data.error}`;
+        }
+    } catch (e) {
+        box.innerHTML = `❌ Erro: ${e.message}`;
+    }
+}
+
+async function executarReset() {
+    const tipo = document.getElementById('resetTipo').value;
+    const body = { tipo };
+
+    if (tipo === 'periodo') {
+        const year = document.getElementById('resetYear').value;
+        const month = document.getElementById('resetMonth').value;
+
+        if (!year) { alert('Selecione o ano'); return; }
+
+        const periodoTexto = month
+            ? `${MESES[parseInt(month)-1]}/${year}`
+            : `todo o ano ${year}`;
+
+        if (!confirm(`⚠️ ATENÇÃO!\n\nVocê vai EXCLUIR PERMANENTEMENTE todos os documentos de ${periodoTexto}.\n\nEsta ação NÃO pode ser desfeita. Continuar?`)) return;
+
+        const digitou = prompt('Digite RESETAR (em maiúsculas) para confirmar:');
+        if (digitou !== 'RESETAR') { alert('❌ Cancelado.'); return; }
+
+        body.year = year;
+        body.month = month || null;
+        body.confirm = true;
+
+    } else if (tipo === 'documentos') {
+        if (!confirm('⚠️ Apagar TODOS os documentos? Esta ação não pode ser desfeita.')) return;
+        const digitou = prompt('Digite RESETAR para confirmar:');
+        if (digitou !== 'RESETAR') { alert('❌ Cancelado.'); return; }
+
+    } else if (tipo === 'total') {
+        if (!confirm('⚠️ Reset TOTAL: documentos E empresas serão apagados!\n\nContinuar?')) return;
+        const digitou = prompt('Digite RESETAR para confirmar:');
+        if (digitou !== 'RESETAR') { alert('❌ Cancelado.'); return; }
+    }
 
     document.getElementById('loadingOverlay').style.display = 'flex';
 
@@ -1311,16 +1490,17 @@ async function confirmarReset() {
         const res = await fetch(`${API_URL}/admin/reset`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
-            body: JSON.stringify({ tipo })
+            body: JSON.stringify(body)
         });
         const data = await res.json();
         document.getElementById('loadingOverlay').style.display = 'none';
 
         if (data.success) {
             alert('✅ ' + data.message);
+            fecharModalReset();
             carregarTudo();
         } else {
-            alert('❌ Erro: ' + (data.error || 'desconhecido'));
+            alert('❌ ' + (data.error || 'Erro desconhecido'));
         }
     } catch (error) {
         document.getElementById('loadingOverlay').style.display = 'none';
@@ -1373,7 +1553,7 @@ async function previewImport(event) {
                     <span style="color:var(--text-secondary);font-size:12px;">${r.total} registros encontrados</span>
                 </div>`;
             }).join('');
-            
+
             const totalValidos = data.resultados.filter(r => !r.erro).reduce((s, r) => s + r.total, 0);
             if (totalValidos > 0) {
                 lista.innerHTML += `<p style="text-align:center;margin-top:12px;font-weight:700;color:var(--verde-sicaf);">Total: ${totalValidos} registros prontos para importar</p>`;
@@ -1445,21 +1625,21 @@ function finalizarImport() {
 function gerarPDF() {
     const temaOriginal = document.documentElement.getAttribute('data-theme');
     document.documentElement.setAttribute('data-theme', 'light');
-    
+
     setTimeout(() => {
         const elemento = document.getElementById('dashboardMain');
         const opt = {
             margin: [6, 6, 6, 6],
             filename: `Relatorio_SICAF_${new Date().toISOString().slice(0,10)}.pdf`,
             image: { type: 'jpeg', quality: 0.95 },
-            html2canvas: { 
-                scale: 2, useCORS: true, scrollY: 0, scrollX: 0, 
+            html2canvas: {
+                scale: 2, useCORS: true, scrollY: 0, scrollX: 0,
                 windowWidth: elemento.scrollWidth, backgroundColor: '#FFFFFF'
             },
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
             pagebreak: { mode: ['css', 'legacy'], avoid: ['.chart-card', '.kpi-card', 'tr', '.table-card'] }
         };
-        
+
         html2pdf().set(opt).from(elemento).save().then(() => {
             document.documentElement.setAttribute('data-theme', temaOriginal);
         });
