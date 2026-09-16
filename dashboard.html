@@ -1349,8 +1349,15 @@ async function carregarEmpresasParaSelect() {
             headers: { 'Authorization': `Bearer ${authToken}` }
         });
         const companies = await res.json();
+
+        // 🎯 FILTRO: exibir apenas empresas específicas
+        const empresasPermitidas = ['TECHNIPFMC', 'EQP'];
+        const empresasFiltradas = companies.filter(c => 
+            empresasPermitidas.some(p => c.name.toUpperCase().includes(p.toUpperCase()))
+        );
+
         select.innerHTML = '<option value="">— Nenhuma (acesso geral) —</option>' +
-            companies.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+            empresasFiltradas.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
     } catch (e) {
         select.innerHTML = '<option value="">Erro ao carregar empresas</option>';
     }
