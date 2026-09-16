@@ -187,11 +187,21 @@
         .spinner { width: 50px; height: 50px; border: 4px solid var(--border-color); border-top-color: var(--verde-sicaf); border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        @media(max-width: 600px) {
+               @media(max-width: 600px) {
             .kpi-grid { grid-template-columns: repeat(2, 1fr); }
             header { flex-direction: column; align-items: flex-start; }
             .header-left { width: 100%; }
         }
+
+        /* ===== MODO PDF ===== */
+        body.pdf-mode .charts-grid { display: block !important; }
+        body.pdf-mode .chart-card { margin-bottom: 14px; page-break-inside: avoid; break-inside: avoid; }
+        body.pdf-mode .chart-container { height: 230px !important; }
+        body.pdf-mode .table-wrapper { max-height: none !important; overflow: visible !important; }
+        body.pdf-mode th { position: static !important; }
+        body.pdf-mode .header-controls .btn-icon { display: none !important; }
+        body.pdf-mode .header-controls .user-pill { display: inline-flex !important; }
+        body.pdf-mode .admin-only { display: none !important; }
     </style>
 </head>
 <body>
@@ -1622,28 +1632,69 @@ function finalizarImport() {
 }
 
 // ============ PDF ============
-function gerarPDF() {
+async function gerarPDF() {
+    const btn = document.querySelector('button[onclick="gerarPDF()"]');
+    const textoOriginal = btn ? btn.innerHTML : '';
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Gerando...';
+    }
+
     const temaOriginal = document.documentElement.getAttribute('data-theme');
     document.documentElement.setAttribute('data-theme', 'light');
+    document.body.classList.add('pdf-mode');
 
-    setTimeout(() => {
-        const elemento = document.getElementById('dashboardMain');
-        const opt = {
-            margin: [6, 6, 6, 6],
-            filename: `Relatorio_SICAF_${new Date().toISOString().slice(0,10)}.pdf`,
-            image: { type: 'jpeg', quality: 0.95 },
-            html2canvas: {
-                scale: 2, useCORS: true, scrollY: 0, scrollX: 0,
-                windowWidth: elemento.scrollWidth, backgroundColor: '#FFFFFF'
-            },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
-            pagebreak: { mode: ['css', 'legacy'], avoid: ['.chart-card', '.kpi-card', 'tr', '.table-card'] }
-        };
+    // Aguarda o layout aplicar e os gráficos redimensionarem
+    await new Promise(r => setTimeout(r, 800));
 
-        html2pdf().set(opt).from(elemento).save().then(() => {
-            document.documentElement.setAttribute('data-theme', temaOriginal);
-        });
-    }, 400);
+    const elemento = document.getElementById('dashboardMain');
+    const dataAtual = new Date().toISOString().slice(0, 10);
+
+    const opt = {
+        margin: [8, 8, 10, 8],
+        filename: `${dataAtual}.pdf`,
+        image: { type: 'jpeg', quality: 0.95 },
+        html2canvas: {
+            scale: 2,
+            useCORS: true,
+            allowTaint: true,
+            backgroundColor: '#FFFFFF',
+            scrollY: 0,
+            scrollX: 0,
+            windowWidth: elemento.scrollWidth,
+            onclone: (doc) => {
+                doc.querySelectorAll('th').forEach(th => { th.style.position = 'static'; });
+                doc.querySelectorAll('.table-wrapper').forEach(el => {
+                    el.style.maxHeight = 'none';
+                    el.style.overflow = 'visible';
+                });
+            }
+        },
+        jsPDF: {
+            unit: 'mm',
+            format: 'a4',
+            orientation: 'landscape',
+            compress: true
+        },
+        pagebreak: {
+            mode: ['css', 'legacy'],
+            avoid: ['.chart-card', '.kpi-card', '.table-card', 'tr']
+        }
+    };
+
+    try {
+        await html2pdf().set(opt).from(elemento).save();
+    } catch (error) {
+        console.error('Erro ao gerar PDF:', error);
+        alert('Erro ao gerar PDF: ' + error.message);
+    } finally {
+        document.documentElement.setAttribute('data-theme', temaOriginal);
+        document.body.classList.remove('pdf-mode');
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = textoOriginal;
+        }
+    }
 }
 
 function toggleTheme() {
